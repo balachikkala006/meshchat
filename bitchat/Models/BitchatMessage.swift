@@ -1,5 +1,5 @@
 //
-// BitchatMessage.swift
+// MeshChatMessage.swift
 // bitchat
 //
 // This is free and unencumbered software released into the public domain.
@@ -12,7 +12,7 @@ import Foundation
 /// Handles both broadcast messages and private encrypted messages,
 /// with support for mentions, replies, and delivery tracking.
 /// - Note: This is the primary data model for chat messages
-final class BitchatMessage: Codable {
+final class MeshChatMessage: Codable {
     let id: String
     let sender: String
     let content: String
@@ -71,8 +71,8 @@ final class BitchatMessage: Codable {
 
 // MARK: - Equatable Conformance
 
-extension BitchatMessage: Equatable {
-    static func == (lhs: BitchatMessage, rhs: BitchatMessage) -> Bool {
+extension MeshChatMessage: Equatable {
+    static func == (lhs: MeshChatMessage, rhs: MeshChatMessage) -> Bool {
         return lhs.id == rhs.id &&
                lhs.sender == rhs.sender &&
                lhs.content == rhs.content &&
@@ -89,7 +89,7 @@ extension BitchatMessage: Equatable {
 
 // MARK: - Binary encoding
 
-extension BitchatMessage {
+extension MeshChatMessage {
     func toBinaryPayload() -> Data? {
         var data = Data()
         
@@ -322,7 +322,7 @@ extension BitchatMessage {
 
 // MARK: - Helpers
 
-extension BitchatMessage {
+extension MeshChatMessage {
     
     private static let timestampFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -335,7 +335,7 @@ extension BitchatMessage {
     }
 }
 
-extension Array where Element == BitchatMessage {
+extension Array where Element == MeshChatMessage {
     /// Filters out empty ones and deduplicate by ID while preserving order (from oldest to newest)
     func cleanedAndDeduped() -> [Element] {
         let arr = filter { $0.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false }
@@ -343,7 +343,7 @@ extension Array where Element == BitchatMessage {
             return arr
         }
         var seen = Set<String>()
-        var dedup: [BitchatMessage] = []
+        var dedup: [MeshChatMessage] = []
         for m in arr.sorted(by: { $0.timestamp < $1.timestamp }) {
             if !seen.contains(m.id) {
                 dedup.append(m)
@@ -353,3 +353,8 @@ extension Array where Element == BitchatMessage {
         return dedup
     }
 }
+
+// MARK: - Backwards Compatibility Typealias
+
+/// Typealias for backwards compatibility with existing test code
+typealias BitchatMessage = MeshChatMessage

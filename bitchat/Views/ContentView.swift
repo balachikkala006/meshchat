@@ -24,7 +24,7 @@ import BitLogger
 
 private struct MessageDisplayItem: Identifiable {
     let id: String
-    let message: BitchatMessage
+    let message: MeshChatMessage
 }
 
 // MARK: - Main Content View
@@ -42,6 +42,7 @@ struct ContentView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var showSidebar = false
     @State private var showAppInfo = false
+    @State private var showProfileSettings = false
     @State private var showMessageActions = false
     @State private var selectedMessageSender: String?
     @State private var selectedMessageSenderID: PeerID?
@@ -81,15 +82,15 @@ struct ContentView: View {
     // MARK: - Computed Properties
     
     private var backgroundColor: Color {
-        colorScheme == .dark ? Color.black : Color.white
+        MeshChatDesignSystem.Colors.background(colorScheme)
     }
 
     private var textColor: Color {
-        colorScheme == .dark ? Color.green : Color(red: 0, green: 0.5, blue: 0)
+        MeshChatDesignSystem.Colors.primaryText(colorScheme)
     }
 
     private var secondaryTextColor: Color {
-        colorScheme == .dark ? Color.green.opacity(0.8) : Color(red: 0, green: 0.5, blue: 0).opacity(0.8)
+        MeshChatDesignSystem.Colors.secondaryText(colorScheme)
     }
 
     private var headerLineLimit: Int? {
@@ -121,7 +122,7 @@ struct ContentView: View {
     
     private struct PrivateHeaderContext {
         let headerPeerID: PeerID
-        let peer: BitchatPeer?
+        let peer: MeshChatPeer?
         let displayName: String
         let isNostrAvailable: Bool
     }
@@ -131,6 +132,12 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             mainHeaderView
+                .padding(.horizontal, MeshChatDesignSystem.Spacing.md)
+                .padding(.vertical, MeshChatDesignSystem.Spacing.sm)
+                .background(
+                    MeshChatDesignSystem.Colors.secondaryBackground(colorScheme)
+                        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.2 : 0.05), radius: 2, y: 1)
+                )
                 .onAppear {
                     viewModel.currentColorScheme = colorScheme
                     #if os(macOS)
@@ -146,6 +153,7 @@ struct ContentView: View {
                 }
 
             Divider()
+                .background(MeshChatDesignSystem.Colors.border(colorScheme))
 
             GeometryReader { geometry in
                 VStack(spacing: 0) {
@@ -184,6 +192,10 @@ struct ContentView: View {
             )
         ) {
             peopleSheetView
+        }
+        .sheet(isPresented: $showProfileSettings) {
+            ProfileSettingsView()
+                .environmentObject(viewModel)
         }
         .sheet(isPresented: $showAppInfo) {
             AppInfoView()
@@ -346,7 +358,7 @@ struct ContentView: View {
     // MARK: - Message List View
     
     private func messagesView(privatePeer: PeerID?, isAtBottom: Binding<Bool>) -> some View {
-        let messages: [BitchatMessage] = {
+        let messages: [MeshChatMessage] = {
             if let peerID = privatePeer {
                 return viewModel.getPrivateChatMessages(for: peerID)
             }
@@ -360,7 +372,7 @@ struct ContentView: View {
             return windowCountPublic
         }()
 
-        let windowedMessages: [BitchatMessage] = Array(messages.suffix(currentWindowCount))
+        let windowedMessages: [MeshChatMessage] = Array(messages.suffix(currentWindowCount))
 
         let contextKey: String = {
             if let peer = privatePeer { return "dm:\(peer)" }
@@ -419,8 +431,13 @@ struct ContentView: View {
                                     #endif
                                 }
                             }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 1)
+                            .padding(.horizontal, MeshChatDesignSystem.Spacing.md)
+                            .padding(.vertical, MeshChatDesignSystem.Spacing.sm)
+                            .id(message.id)
+                            .transition(.asymmetric(
+                                insertion: .scale(scale: 0.95).combined(with: .opacity),
+                                removal: .opacity
+                            ))
                     }
                 }
                 .transaction { tx in if viewModel.isBatchingPublic { tx.disablesAnimations = true } }
@@ -628,7 +645,7 @@ struct ContentView: View {
                     .foregroundColor(secondaryTextColor.opacity(0.6))
                 )
                 .textFieldStyle(.plain)
-                .font(.bitchatSystem(size: 15, design: .monospaced))
+                .font(MeshChatDesignSystem.Typography.messageText)
                 .foregroundColor(textColor)
                 .focused($isTextFieldFocused)
                 .autocorrectionDisabled(true)
@@ -637,11 +654,15 @@ struct ContentView: View {
 #endif
                 .submitLabel(.send)
                 .onSubmit { sendMessage() }
-                .padding(.vertical, 4)
-                .padding(.horizontal, 6)
+                .padding(.vertical, MeshChatDesignSystem.Spacing.md)
+                .padding(.horizontal, MeshChatDesignSystem.Spacing.md)
                 .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(colorScheme == .dark ? Color.black.opacity(0.35) : Color.white.opacity(0.7))
+                    RoundedRectangle(cornerRadius: MeshChatDesignSystem.CornerRadius.messageBubble, style: .continuous)
+                        .fill(MeshChatDesignSystem.Colors.inputBackground(colorScheme))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: MeshChatDesignSystem.CornerRadius.messageBubble, style: .continuous)
+                                .stroke(MeshChatDesignSystem.Colors.inputBorder(colorScheme), lineWidth: 1)
+                        )
                 )
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .onChange(of: messageText) { newValue in
@@ -654,23 +675,26 @@ struct ContentView: View {
                     }
                 }
 
-                HStack(alignment: .center, spacing: 4) {
+                HStack(alignment: .center, spacing: MeshChatDesignSystem.Spacing.sm) {
                     if shouldShowMediaControls {
                         attachmentButton
+                            .transition(.scale.combined(with: .opacity))
                     }
 
                     sendOrMicButton
+                        .transition(.scale.combined(with: .opacity))
                 }
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: shouldShowMediaControls)
             }
         }
-        .padding(.horizontal, 6)
-        .padding(.top, 6)
-        .padding(.bottom, 8)
-        .background(backgroundColor.opacity(0.95))
+        .padding(.horizontal, MeshChatDesignSystem.Spacing.md)
+        .padding(.top, MeshChatDesignSystem.Spacing.md)
+        .padding(.bottom, MeshChatDesignSystem.Spacing.lg)
+        .background(MeshChatDesignSystem.Colors.secondaryBackground(colorScheme).opacity(0.95))
     }
     
     private func handleOpenURL(_ url: URL) {
-        guard url.scheme == "bitchat" else { return }
+        guard url.scheme == "meshchat" else { return }
         switch url.host {
         case "user":
             let id = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
@@ -1200,27 +1224,27 @@ struct ContentView: View {
 
     
     private var mainHeaderView: some View {
-        HStack(spacing: 0) {
-            Text(verbatim: "bitchat/")
-                .font(.bitchatSystem(size: 18, weight: .medium, design: .monospaced))
-                .foregroundColor(textColor)
+        HStack(spacing: MeshChatDesignSystem.Spacing.md) {
+            Text(verbatim: "MeshChat")
+                .font(MeshChatDesignSystem.Typography.title3)
+                .foregroundColor(MeshChatDesignSystem.Colors.primary)
                 .onTapGesture(count: 3) {
                     // PANIC: Triple-tap to clear all data
                     viewModel.panicClearAllData()
                 }
                 .onTapGesture(count: 1) {
-                    // Single tap for app info
-                    showAppInfo = true
+                    // Single tap for profile settings
+                    showProfileSettings = true
                 }
             
-            HStack(spacing: 0) {
+            HStack(spacing: MeshChatDesignSystem.Spacing.xs) {
                 Text(verbatim: "@")
-                    .font(.bitchatSystem(size: 14, design: .monospaced))
+                    .font(MeshChatDesignSystem.Typography.messageSender)
                     .foregroundColor(secondaryTextColor)
                 
                 TextField("content.input.nickname_placeholder", text: $viewModel.nickname)
                     .textFieldStyle(.plain)
-                    .font(.bitchatSystem(size: 14, design: .monospaced))
+                    .font(MeshChatDesignSystem.Typography.messageSender)
                     .frame(maxWidth: 80)
                     .foregroundColor(textColor)
                     .focused($isNicknameFieldFocused)
@@ -1240,6 +1264,9 @@ struct ContentView: View {
             }
             
             Spacer()
+            
+            // Theme toggle
+            ThemeToggleView()
             
             // Channel badge + dynamic spacing + people counter
             // Precompute header count and color outside the ViewBuilder expressions
@@ -1488,7 +1515,7 @@ private enum MessageMedia {
 }
 
 private extension ContentView {
-    func mediaAttachment(for message: BitchatMessage) -> MessageMedia? {
+    func mediaAttachment(for message: MeshChatMessage) -> MessageMedia? {
         guard let baseDirectory = applicationFilesDirectory() else { return nil }
 
         // Extract filename from message content
@@ -1522,7 +1549,7 @@ private extension ContentView {
         return nil
     }
 
-    func mediaSendState(for message: BitchatMessage, mediaURL: URL) -> (isSending: Bool, progress: Double?, canCancel: Bool) {
+    func mediaSendState(for message: MeshChatMessage, mediaURL: URL) -> (isSending: Bool, progress: Double?, canCancel: Bool) {
         var isSending = false
         var progress: Double?
         if let status = message.deliveryStatus {
@@ -1546,25 +1573,97 @@ private extension ContentView {
     }
 
     @ViewBuilder
-    private func messageRow(for message: BitchatMessage) -> some View {
+    private func messageRow(for message: MeshChatMessage) -> some View {
+        let isSelf = viewModel.isSelfSender(peerID: message.senderPeerID, displayName: message.sender)
+        
         if message.sender == "system" {
             systemMessageRow(message)
         } else if let media = mediaAttachment(for: message) {
-            mediaMessageRow(message: message, media: media)
+            let isOutgoing = media.url.path.contains("/outgoing/")
+            let isAuthoredByUs = isOutgoing || (message.senderPeerID == viewModel.meshService.myPeerID)
+            mediaMessageRow(message: message, media: media, isSelf: isAuthoredByUs)
         } else {
-            TextMessageView(message: message, expandedMessageIDs: $expandedMessageIDs)
+            messageBubbleView(message: message, isSelf: isSelf)
+        }
+    }
+    
+    @ViewBuilder
+    private func messageBubbleView(message: MeshChatMessage, isSelf: Bool) -> some View {
+        HStack(alignment: .bottom, spacing: MeshChatDesignSystem.Spacing.sm) {
+            if isSelf {
+                Spacer(minLength: 60)
+            }
+            
+            VStack(alignment: isSelf ? .trailing : .leading, spacing: MeshChatDesignSystem.Spacing.xs) {
+                // Sender name (only show for others)
+                if !isSelf && message.sender != "system" {
+                    Text(message.sender)
+                        .font(MeshChatDesignSystem.Typography.messageSender)
+                        .foregroundColor(viewModel.peerColor(for: message, isDark: colorScheme == .dark))
+                        .padding(.horizontal, MeshChatDesignSystem.Spacing.sm)
+                }
+                
+                // Message bubble with enhanced styling and animations
+                TextMessageView(message: message, expandedMessageIDs: $expandedMessageIDs)
+                    .padding(.horizontal, MeshChatDesignSystem.Spacing.md)
+                    .padding(.vertical, MeshChatDesignSystem.Spacing.sm)
+                    .background(
+                        RoundedRectangle(cornerRadius: MeshChatDesignSystem.CornerRadius.messageBubble)
+                            .fill(isSelf 
+                                ? MeshChatDesignSystem.Colors.messageBubbleSelf(colorScheme)
+                                : MeshChatDesignSystem.Colors.messageBubbleOther(colorScheme)
+                            )
+                            .shadow(
+                                color: isSelf 
+                                    ? MeshChatDesignSystem.Colors.messageBubbleSelf(colorScheme).opacity(0.2)
+                                    : Color.black.opacity(colorScheme == .dark ? 0.3 : 0.1),
+                                radius: 4,
+                                x: 0,
+                                y: 2
+                            )
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: MeshChatDesignSystem.CornerRadius.messageBubble)
+                            .stroke(
+                                isSelf 
+                                    ? MeshChatDesignSystem.Colors.messageBubbleSelf(colorScheme).opacity(0.2)
+                                    : MeshChatDesignSystem.Colors.border(colorScheme).opacity(0.15),
+                                lineWidth: 0.5
+                            )
+                    )
+                    .transition(.asymmetric(
+                        insertion: .scale(scale: 0.95).combined(with: .opacity),
+                        removal: .opacity
+                    ))
+            }
+            
+            if !isSelf {
+                Spacer(minLength: 60)
+            }
         }
     }
 
     @ViewBuilder
-    private func systemMessageRow(_ message: BitchatMessage) -> some View {
-        Text(viewModel.formatMessageAsText(message, colorScheme: colorScheme))
-            .fixedSize(horizontal: false, vertical: true)
-            .frame(maxWidth: .infinity, alignment: .leading)
+    private func systemMessageRow(_ message: MeshChatMessage) -> some View {
+        HStack {
+            Spacer()
+            Text(viewModel.formatMessageAsText(message, colorScheme: colorScheme))
+                .font(MeshChatDesignSystem.Typography.caption)
+                .foregroundColor(MeshChatDesignSystem.Colors.tertiaryText(colorScheme))
+                .italic()
+                .padding(.horizontal, MeshChatDesignSystem.Spacing.md)
+                .padding(.vertical, MeshChatDesignSystem.Spacing.sm)
+                .background(
+                    Capsule()
+                        .fill(MeshChatDesignSystem.Colors.tertiaryBackground(colorScheme).opacity(0.5))
+                )
+            Spacer()
+        }
+        .padding(.vertical, MeshChatDesignSystem.Spacing.xs)
     }
 
     @ViewBuilder
-    private func mediaMessageRow(message: BitchatMessage, media: MessageMedia) -> some View {
+    private func mediaMessageRow(message: MeshChatMessage, media: MessageMedia, isSelf: Bool) -> some View {
         let mediaURL = media.url
         let state = mediaSendState(for: message, mediaURL: mediaURL)
         let isOutgoing = mediaURL.path.contains("/outgoing/")
@@ -1572,52 +1671,95 @@ private extension ContentView {
         let shouldBlurImage = !isAuthoredByUs
         let cancelAction: (() -> Void)? = state.canCancel ? { viewModel.cancelMediaSend(messageID: message.id) } : nil
 
-        VStack(alignment: .leading, spacing: 2) {
-            HStack(alignment: .center, spacing: 4) {
-                Text(viewModel.formatMessageHeader(message, colorScheme: colorScheme))
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                if message.isPrivate && message.sender == viewModel.nickname,
-                   let status = message.deliveryStatus {
-                    DeliveryStatusView(status: status)
-                        .padding(.leading, 4)
-                }
+        HStack(alignment: .bottom, spacing: MeshChatDesignSystem.Spacing.sm) {
+            if isSelf {
+                Spacer(minLength: 60)
             }
-
-            Group {
-                switch media {
-                case .voice(let url):
-                    VoiceNoteView(
-                        url: url,
-                        isSending: state.isSending,
-                        sendProgress: state.progress,
-                        onCancel: cancelAction
-                    )
-                case .image(let url):
-                    BlockRevealImageView(
-                        url: url,
-                        revealProgress: state.progress,
-                        isSending: state.isSending,
-                        onCancel: cancelAction,
-                        initiallyBlurred: shouldBlurImage,
-                        onOpen: {
-                            if !state.isSending {
-                                imagePreviewURL = url
-                            }
-                        },
-                        onDelete: shouldBlurImage ? {
-                            viewModel.deleteMediaMessage(messageID: message.id)
-                        } : nil
-                    )
-                    .frame(maxWidth: 280)
+            
+            VStack(alignment: isSelf ? .trailing : .leading, spacing: MeshChatDesignSystem.Spacing.xs) {
+                // Sender name (only show for others)
+                if !isSelf && message.sender != "system" {
+                    Text(message.sender)
+                        .font(MeshChatDesignSystem.Typography.messageSender)
+                        .foregroundColor(viewModel.peerColor(for: message, isDark: colorScheme == .dark))
+                        .padding(.horizontal, MeshChatDesignSystem.Spacing.sm)
                 }
+                
+                // Media bubble
+                VStack(alignment: .leading, spacing: MeshChatDesignSystem.Spacing.xs) {
+                    Group {
+                        switch media {
+                        case .voice(let url):
+                            VoiceNoteView(
+                                url: url,
+                                isSending: state.isSending,
+                                sendProgress: state.progress,
+                                onCancel: cancelAction
+                            )
+                        case .image(let url):
+                            BlockRevealImageView(
+                                url: url,
+                                revealProgress: state.progress,
+                                isSending: state.isSending,
+                                onCancel: cancelAction,
+                                initiallyBlurred: shouldBlurImage,
+                                onOpen: {
+                                    if !state.isSending {
+                                        imagePreviewURL = url
+                                    }
+                                },
+                                onDelete: shouldBlurImage ? {
+                                    viewModel.deleteMediaMessage(messageID: message.id)
+                                } : nil
+                            )
+                            .frame(maxWidth: 280)
+                        }
+                    }
+                    
+                    // Delivery status for private messages
+                    if message.isPrivate && message.sender == viewModel.nickname,
+                       let status = message.deliveryStatus {
+                        HStack {
+                            DeliveryStatusView(status: status)
+                        }
+                    }
+                }
+                .padding(.horizontal, MeshChatDesignSystem.Spacing.md)
+                .padding(.vertical, MeshChatDesignSystem.Spacing.sm)
+                .background(
+                    RoundedRectangle(cornerRadius: MeshChatDesignSystem.CornerRadius.messageBubble)
+                        .fill(isSelf 
+                            ? MeshChatDesignSystem.Colors.messageBubbleSelf(colorScheme)
+                            : MeshChatDesignSystem.Colors.messageBubbleOther(colorScheme)
+                        )
+                        .shadow(
+                            color: isSelf 
+                                ? MeshChatDesignSystem.Colors.messageBubbleSelf(colorScheme).opacity(0.2)
+                                : Color.black.opacity(colorScheme == .dark ? 0.3 : 0.1),
+                            radius: 4,
+                            x: 0,
+                            y: 2
+                        )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: MeshChatDesignSystem.CornerRadius.messageBubble)
+                        .stroke(
+                            isSelf 
+                                ? MeshChatDesignSystem.Colors.messageBubbleSelf(colorScheme).opacity(0.2)
+                                : MeshChatDesignSystem.Colors.border(colorScheme).opacity(0.15),
+                            lineWidth: 0.5
+                        )
+                )
+            }
+            
+            if !isSelf {
+                Spacer(minLength: 60)
             }
         }
-        .padding(.vertical, 4)
     }
 
-    private func expandWindow(ifNeededFor message: BitchatMessage,
-                              allMessages: [BitchatMessage],
+    private func expandWindow(ifNeededFor message: MeshChatMessage,
+                              allMessages: [MeshChatMessage],
                               privatePeer: PeerID?,
                               proxy: ScrollViewProxy) {
         let step = TransportConfig.uiWindowStepCount
@@ -1707,28 +1849,35 @@ private extension ContentView {
 
     var attachmentButton: some View {
         #if os(iOS)
-        Image(systemName: "camera.circle.fill")
-            .font(.bitchatSystem(size: 24))
-            .foregroundColor(composerAccentColor)
-            .frame(width: 36, height: 36)
-            .contentShape(Circle())
-            .onTapGesture {
-                // Tap = Photo Library
-                imagePickerSourceType = .photoLibrary
-                showImagePicker = true
-            }
-            .onLongPressGesture(minimumDuration: 0.3) {
-                // Long press = Camera
-                imagePickerSourceType = .camera
-                showImagePicker = true
-            }
-            .accessibilityLabel("Tap for library, long press for camera")
+        Button(action: {
+            imagePickerSourceType = .photoLibrary
+            showImagePicker = true
+        }) {
+            Image(systemName: "camera.circle.fill")
+                .font(.system(size: 28, weight: .medium))
+                .foregroundColor(MeshChatDesignSystem.Colors.primary)
+                .frame(width: 44, height: 44)
+                .background(
+                    Circle()
+                        .fill(MeshChatDesignSystem.Colors.primary.opacity(0.1))
+                )
+        }
+        .buttonStyle(.plain)
+        .onLongPressGesture(minimumDuration: 0.3) {
+            imagePickerSourceType = .camera
+            showImagePicker = true
+        }
+        .accessibilityLabel("Tap for library, long press for camera")
         #else
         Button(action: { showMacImagePicker = true }) {
             Image(systemName: "photo.circle.fill")
-                .font(.bitchatSystem(size: 24))
-                .foregroundColor(composerAccentColor)
-                .frame(width: 36, height: 36)
+                .font(.system(size: 28, weight: .medium))
+                .foregroundColor(MeshChatDesignSystem.Colors.primary)
+                .frame(width: 44, height: 44)
+                .background(
+                    Circle()
+                        .fill(MeshChatDesignSystem.Colors.primary.opacity(0.1))
+                )
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Choose photo")
@@ -1747,21 +1896,25 @@ private extension ContentView {
                     .opacity(hasText ? 1 : 0)
                     .allowsHitTesting(hasText)
             }
-            .frame(width: 36, height: 36)
+            .frame(width: 44, height: 44)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hasText)
         } else {
             sendButtonView(enabled: hasText)
-                .frame(width: 36, height: 36)
+                .frame(width: 44, height: 44)
         }
     }
 
     private var micButtonView: some View {
-        let tint = (isRecordingVoiceNote || isPreparingVoiceNote) ? Color.red : composerAccentColor
+        let tint = (isRecordingVoiceNote || isPreparingVoiceNote) ? MeshChatDesignSystem.Colors.error : MeshChatDesignSystem.Colors.primary
 
         return Image(systemName: "mic.circle.fill")
-            .font(.bitchatSystem(size: 24))
+            .font(.system(size: 28, weight: .medium))
             .foregroundColor(tint)
-            .frame(width: 36, height: 36)
-            .contentShape(Circle())
+            .frame(width: 44, height: 44)
+            .background(
+                Circle()
+                    .fill(tint.opacity(0.1))
+            )
             .overlay(
                 Color.clear
                     .contentShape(Circle())
@@ -1771,19 +1924,27 @@ private extension ContentView {
                             .onEnded { _ in finishVoiceRecording(send: true) }
                     )
             )
+            .scaleEffect(isRecordingVoiceNote ? 1.1 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isRecordingVoiceNote)
             .accessibilityLabel("Hold to record a voice note")
     }
 
     private func sendButtonView(enabled: Bool) -> some View {
-        let activeColor = composerAccentColor
+        let activeColor = MeshChatDesignSystem.Colors.primary
         return Button(action: sendMessage) {
             Image(systemName: "arrow.up.circle.fill")
-                .font(.bitchatSystem(size: 24))
-                .foregroundColor(enabled ? activeColor : Color.gray)
-                .frame(width: 36, height: 36)
+                .font(.system(size: 28, weight: .medium))
+                .foregroundColor(enabled ? .white : MeshChatDesignSystem.Colors.tertiaryText(colorScheme))
+                .frame(width: 44, height: 44)
+                .background(
+                    Circle()
+                        .fill(enabled ? activeColor : MeshChatDesignSystem.Colors.tertiaryBackground(colorScheme))
+                )
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
+        .scaleEffect(enabled ? 1.0 : 0.95)
+        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: enabled)
         .accessibilityLabel(
             String(localized: "content.accessibility.send_message", comment: "Accessibility label for the send message button")
         )

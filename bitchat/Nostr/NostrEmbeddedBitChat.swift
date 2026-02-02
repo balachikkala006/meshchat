@@ -16,7 +16,7 @@ struct NostrEmbeddedBitChat {
         // Determine 8-byte recipient ID to embed
         let recipientID = normalizeRecipientPeerID(recipientPeerID)
 
-        let packet = BitchatPacket(
+        let packet = MeshChatPacket(
             type: MessageType.noiseEncrypted.rawValue,
             senderID: Data(hexString: senderPeerID.id) ?? Data(),
             recipientID: Data(hexString: recipientID.id),
@@ -39,7 +39,7 @@ struct NostrEmbeddedBitChat {
 
         let recipientID = normalizeRecipientPeerID(recipientPeerID)
 
-        let packet = BitchatPacket(
+        let packet = MeshChatPacket(
             type: MessageType.noiseEncrypted.rawValue,
             senderID: Data(hexString: senderPeerID.id) ?? Data(),
             recipientID: Data(hexString: recipientID.id),
@@ -60,7 +60,7 @@ struct NostrEmbeddedBitChat {
         var payload = Data([type.rawValue])
         payload.append(Data(messageID.utf8))
 
-        let packet = BitchatPacket(
+        let packet = MeshChatPacket(
             type: MessageType.noiseEncrypted.rawValue,
             senderID: Data(hexString: senderPeerID.id) ?? Data(),
             recipientID: nil,
@@ -82,7 +82,7 @@ struct NostrEmbeddedBitChat {
         var payload = Data([NoisePayloadType.privateMessage.rawValue])
         payload.append(tlv)
 
-        let packet = BitchatPacket(
+        let packet = MeshChatPacket(
             type: MessageType.noiseEncrypted.rawValue,
             senderID: Data(hexString: senderPeerID.id) ?? Data(),
             recipientID: nil,

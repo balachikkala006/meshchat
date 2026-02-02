@@ -19,10 +19,10 @@ protocol MessageFormattingContext: AnyObject {
     var nickname: String { get }
 
     /// Determines if a message was sent by the current user
-    func isSelfMessage(_ message: BitchatMessage) -> Bool
+    func isSelfMessage(_ message: MeshChatMessage) -> Bool
 
     /// Gets the color for a message's sender
-    func senderColor(for message: BitchatMessage, isDark: Bool) -> Color
+    func senderColor(for message: MeshChatMessage, isDark: Bool) -> Color
 
     /// Resolves a peer ID to a clickable URL
     func peerURL(for peerID: PeerID) -> URL?
@@ -99,7 +99,7 @@ final class MessageFormattingEngine {
     /// Formats a message with rich text styling
     @MainActor
     static func formatMessage(
-        _ message: BitchatMessage,
+        _ message: MeshChatMessage,
         context: MessageFormattingContext,
         colorScheme: ColorScheme
     ) -> AttributedString {
@@ -148,7 +148,7 @@ final class MessageFormattingEngine {
     /// Formats just the message header (sender portion)
     @MainActor
     static func formatHeader(
-        _ message: BitchatMessage,
+        _ message: MeshChatMessage,
         context: MessageFormattingContext,
         colorScheme: ColorScheme
     ) -> AttributedString {
@@ -194,7 +194,7 @@ final class MessageFormattingEngine {
 
     // MARK: - Private Helpers
 
-    private static func formatSystemMessage(_ message: BitchatMessage, isDark: Bool) -> AttributedString {
+    private static func formatSystemMessage(_ message: MeshChatMessage, isDark: Bool) -> AttributedString {
         var result = AttributedString()
 
         let content = AttributedString("* \(message.content) *")
@@ -215,7 +215,7 @@ final class MessageFormattingEngine {
 
     @MainActor
     private static func formatSenderHeader(
-        message: BitchatMessage,
+        message: MeshChatMessage,
         baseColor: Color,
         isSelf: Bool,
         context: MessageFormattingContext

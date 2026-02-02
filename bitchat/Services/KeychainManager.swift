@@ -79,8 +79,8 @@ protocol KeychainManagerProtocol {
 
 final class KeychainManager: KeychainManagerProtocol {
     // Use consistent service name for all keychain items
-    private let service = BitchatApp.bundleID
-    private let appGroup = "group.\(BitchatApp.bundleID)"
+    private let service = MeshChatApp.bundleID
+    private let appGroup = "group.\(MeshChatApp.bundleID)"
     
     // MARK: - Identity Keys
     
@@ -129,7 +129,7 @@ final class KeychainManager: KeychainManagerProtocol {
             kSecValueData as String: data,
             kSecAttrService as String: service,
             kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked,
-            kSecAttrLabel as String: "bitchat-\(key)"
+            kSecAttrLabel as String: "meshchat-\(key)"
         ]
         #if os(macOS)
         base[kSecAttrSynchronizable as String] = false
@@ -294,7 +294,7 @@ final class KeychainManager: KeychainManagerProtocol {
             kSecValueData as String: data,
             kSecAttrService as String: service,
             kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked,
-            kSecAttrLabel as String: "bitchat-\(key)"
+            kSecAttrLabel as String: "meshchat-\(key)"
         ]
         #if os(macOS)
         base[kSecAttrSynchronizable as String] = false

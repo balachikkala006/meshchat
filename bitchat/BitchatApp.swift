@@ -1,5 +1,5 @@
 //
-// BitchatApp.swift
+// MeshChatApp.swift
 // bitchat
 //
 // This is free and unencumbered software released into the public domain.
@@ -11,8 +11,8 @@ import SwiftUI
 import UserNotifications
 
 @main
-struct BitchatApp: App {
-    static let bundleID = Bundle.main.bundleIdentifier ?? "chat.bitchat"
+struct MeshChatApp: App {
+    static let bundleID = Bundle.main.bundleIdentifier ?? "chat.meshchat"
     static let groupID = "group.\(bundleID)"
     
     @StateObject private var chatViewModel: ChatViewModel
@@ -46,8 +46,17 @@ struct BitchatApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environmentObject(chatViewModel)
+            Group {
+                if !ProfileManager.shared.hasCompletedSetup() {
+                    ProfileSetupView()
+                        .environmentObject(chatViewModel)
+                        .preferredColorScheme(AppearanceManager.shared.appearance.colorScheme)
+                } else {
+                    ContentView()
+                        .environmentObject(chatViewModel)
+                        .preferredColorScheme(AppearanceManager.shared.appearance.colorScheme)
+                }
+            }
                 .onAppear {
                     NotificationDelegate.shared.chatViewModel = chatViewModel
                     // Inject live Noise service into VerificationService to avoid creating new BLE instances
@@ -137,7 +146,7 @@ struct BitchatApp: App {
     }
     
     private func handleURL(_ url: URL) {
-        if url.scheme == "bitchat" && url.host == "share" {
+        if url.scheme == "meshchat" && url.host == "share" {
             // Handle shared content
             checkForSharedContent()
         }
@@ -145,7 +154,7 @@ struct BitchatApp: App {
     
     private func checkForSharedContent() {
         // Check app group for shared content from extension
-        guard let userDefaults = UserDefaults(suiteName: BitchatApp.groupID) else {
+        guard let userDefaults = UserDefaults(suiteName: MeshChatApp.groupID) else {
             return
         }
         

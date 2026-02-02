@@ -102,7 +102,7 @@ extension Data {
 }
 
 /// Implements binary encoding and decoding for BitChat protocol messages.
-/// Provides static methods for converting between BitchatPacket objects and
+/// Provides static methods for converting between MeshChatPacket objects and
 /// their binary wire format representation.
 /// - Note: All multi-byte values use network byte order (big-endian)
 struct BinaryProtocol {
@@ -141,8 +141,8 @@ struct BinaryProtocol {
         static let isRSR: UInt8 = 0x10
     }
     
-    // Encode BitchatPacket to binary format
-    static func encode(_ packet: BitchatPacket, padding: Bool = true) -> Data? {
+    // Encode MeshChatPacket to binary format
+    static func encode(_ packet: MeshChatPacket, padding: Bool = true) -> Data? {
         let version = packet.version
         guard version == 1 || version == 2 else { return nil }
 
@@ -265,8 +265,8 @@ struct BinaryProtocol {
         return data
     }
     
-    // Decode binary data to BitchatPacket
-    static func decode(_ data: Data) -> BitchatPacket? {
+    // Decode binary data to MeshChatPacket
+    static func decode(_ data: Data) -> MeshChatPacket? {
         // Try decode as-is first (robust when padding wasn't applied)
         if let pkt = decodeCore(data) { return pkt }
         // If that fails, try after removing padding
@@ -276,10 +276,10 @@ struct BinaryProtocol {
     }
 
     // Core decoding implementation used by decode(_:) with and without padding removal
-    private static func decodeCore(_ raw: Data) -> BitchatPacket? {
+    private static func decodeCore(_ raw: Data) -> MeshChatPacket? {
         guard raw.count >= v1HeaderSize + senderIDSize else { return nil }
 
-        return raw.withUnsafeBytes { (buf: UnsafeRawBufferPointer) -> BitchatPacket? in
+        return raw.withUnsafeBytes { (buf: UnsafeRawBufferPointer) -> MeshChatPacket? in
             guard let base = buf.baseAddress else { return nil }
             var offset = 0
             func require(_ n: Int) -> Bool { offset + n <= buf.count }
@@ -404,7 +404,7 @@ struct BinaryProtocol {
 
             guard offset <= buf.count else { return nil }
 
-            return BitchatPacket(
+            return MeshChatPacket(
                 type: type,
                 senderID: senderID,
                 recipientID: recipientID,

@@ -162,8 +162,8 @@ enum DeliveryStatus: Codable, Equatable, Hashable {
 
 // MARK: - Delegate Protocol
 
-protocol BitchatDelegate: AnyObject {
-    func didReceiveMessage(_ message: BitchatMessage)
+protocol MeshChatDelegate: AnyObject {
+    func didReceiveMessage(_ message: MeshChatMessage)
     func didConnectToPeer(_ peerID: PeerID)
     func didDisconnectFromPeer(_ peerID: PeerID)
     func didUpdatePeerList(_ peers: [PeerID])
@@ -182,7 +182,7 @@ protocol BitchatDelegate: AnyObject {
 }
 
 // Provide default implementation to make it effectively optional
-extension BitchatDelegate {
+extension MeshChatDelegate {
     func isFavorite(fingerprint: String) -> Bool {
         return false
     }
@@ -199,3 +199,8 @@ extension BitchatDelegate {
         // Default empty implementation
     }
 }
+
+// MARK: - Backwards Compatibility Typealias
+
+/// Typealias for backwards compatibility with existing test code
+typealias BitchatDelegate = MeshChatDelegate

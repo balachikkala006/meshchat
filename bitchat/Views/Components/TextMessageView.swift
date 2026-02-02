@@ -12,7 +12,7 @@ struct TextMessageView: View {
     @Environment(\.colorScheme) private var colorScheme: ColorScheme
     @EnvironmentObject private var viewModel: ChatViewModel
     
-    let message: BitchatMessage
+    let message: MeshChatMessage
     @Binding var expandedMessageIDs: Set<String>
     
     var body: some View {
@@ -27,6 +27,7 @@ struct TextMessageView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .lineLimit(isLong && !isExpanded ? TransportConfig.uiLongMessageLineLimit : nil)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .foregroundColor(MeshChatDesignSystem.Colors.primaryText(colorScheme))
                 
                 // Delivery status indicator for private messages
                 if message.isPrivate && message.sender == viewModel.nickname,
@@ -44,9 +45,9 @@ struct TextMessageView: View {
                     if isExpanded { expandedMessageIDs.remove(message.id) }
                     else { expandedMessageIDs.insert(message.id) }
                 }
-                .font(.bitchatSystem(size: 11, weight: .medium, design: .monospaced))
-                .foregroundColor(Color.blue)
-                .padding(.top, 4)
+                .font(MeshChatDesignSystem.Typography.smallCaption)
+                .foregroundColor(MeshChatDesignSystem.Colors.primary)
+                .padding(.top, MeshChatDesignSystem.Spacing.xs)
             }
 
             // Render payment chips (Lightning / Cashu) with rounded background

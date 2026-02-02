@@ -5,15 +5,15 @@ struct AppInfoView: View {
     @Environment(\.colorScheme) var colorScheme
     
     private var backgroundColor: Color {
-        colorScheme == .dark ? Color.black : Color.white
+        MeshChatDesignSystem.Colors.background(colorScheme)
     }
     
     private var textColor: Color {
-        colorScheme == .dark ? Color.green : Color(red: 0, green: 0.5, blue: 0)
+        MeshChatDesignSystem.Colors.primaryText(colorScheme)
     }
     
     private var secondaryTextColor: Color {
-        colorScheme == .dark ? Color.green.opacity(0.8) : Color(red: 0, green: 0.5, blue: 0).opacity(0.8)
+        MeshChatDesignSystem.Colors.secondaryText(colorScheme)
     }
     
     // MARK: - Constants
@@ -136,17 +136,17 @@ struct AppInfoView: View {
     private var infoContent: some View {
         VStack(alignment: .leading, spacing: 24) {
             // Header
-            VStack(alignment: .center, spacing: 8) {
+            VStack(alignment: .center, spacing: MeshChatDesignSystem.Spacing.md) {
                 Text(Strings.appName)
-                    .font(.bitchatSystem(size: 32, weight: .bold, design: .monospaced))
-                    .foregroundColor(textColor)
+                    .font(MeshChatDesignSystem.Typography.title1)
+                    .foregroundColor(MeshChatDesignSystem.Colors.primary)
                 
                 Text(Strings.tagline)
-                    .font(.bitchatSystem(size: 16, design: .monospaced))
+                    .font(MeshChatDesignSystem.Typography.body)
                     .foregroundColor(secondaryTextColor)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical)
+            .padding(.vertical, MeshChatDesignSystem.Spacing.xl)
             
             // How to Use
             VStack(alignment: .leading, spacing: 16) {
@@ -203,19 +203,15 @@ struct SectionHeader: View {
     let title: LocalizedStringKey
     @Environment(\.colorScheme) var colorScheme
     
-    private var textColor: Color {
-        colorScheme == .dark ? Color.green : Color(red: 0, green: 0.5, blue: 0)
-    }
-    
     init(_ title: LocalizedStringKey) {
         self.title = title
     }
     
     var body: some View {
         Text(title)
-            .font(.bitchatSystem(size: 16, weight: .bold, design: .monospaced))
-            .foregroundColor(textColor)
-            .padding(.top, 8)
+            .font(MeshChatDesignSystem.Typography.title3)
+            .foregroundColor(MeshChatDesignSystem.Colors.primaryText(colorScheme))
+            .padding(.top, MeshChatDesignSystem.Spacing.md)
     }
 }
 
@@ -223,34 +219,27 @@ struct FeatureRow: View {
     let info: AppInfoFeatureInfo
     @Environment(\.colorScheme) var colorScheme
     
-    private var textColor: Color {
-        colorScheme == .dark ? Color.green : Color(red: 0, green: 0.5, blue: 0)
-    }
-    
-    private var secondaryTextColor: Color {
-        colorScheme == .dark ? Color.green.opacity(0.8) : Color(red: 0, green: 0.5, blue: 0).opacity(0.8)
-    }
-    
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
+        HStack(alignment: .top, spacing: MeshChatDesignSystem.Spacing.md) {
             Image(systemName: info.icon)
-                .font(.bitchatSystem(size: 20))
-                .foregroundColor(textColor)
-                .frame(width: 30)
+                .font(.system(size: 22, weight: .medium))
+                .foregroundColor(MeshChatDesignSystem.Colors.primary)
+                .frame(width: 32)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: MeshChatDesignSystem.Spacing.xs) {
                 Text(info.title)
-                    .font(.bitchatSystem(size: 14, weight: .semibold, design: .monospaced))
-                    .foregroundColor(textColor)
+                    .font(MeshChatDesignSystem.Typography.captionBold)
+                    .foregroundColor(MeshChatDesignSystem.Colors.primaryText(colorScheme))
                 
                 Text(info.description)
-                    .font(.bitchatSystem(size: 12, design: .monospaced))
-                    .foregroundColor(secondaryTextColor)
+                    .font(MeshChatDesignSystem.Typography.smallCaption)
+                    .foregroundColor(MeshChatDesignSystem.Colors.secondaryText(colorScheme))
                     .fixedSize(horizontal: false, vertical: true)
             }
             
             Spacer()
         }
+        .padding(.vertical, MeshChatDesignSystem.Spacing.xs)
     }
 }
 

@@ -1,12 +1,12 @@
 <img width="256" height="256" alt="icon_128x128@2x" src="https://github.com/user-attachments/assets/90133f83-b4f6-41c6-aab9-25d0859d2a47" />
 
-## bitchat
+## MeshChat
 
 A decentralized peer-to-peer messaging app with dual transport architecture: local Bluetooth mesh networks for offline communication and internet-based Nostr protocol for global reach. No accounts, no phone numbers, no central servers. It's the side-groupchat.
 
-[bitchat.free](http://bitchat.free)
+[meshchat.free](http://meshchat.free)
 
-📲 [App Store](https://apps.apple.com/us/app/bitchat-mesh/id6748219622)
+📲 [App Store](https://apps.apple.com/us/app/meshchat-mesh/id6748219622)
 
 ## License
 
@@ -27,7 +27,7 @@ This project is released into the public domain. See the [LICENSE](LICENSE) file
 
 ## [Technical Architecture](https://deepwiki.com/permissionlesstech/bitchat)
 
-BitChat uses a **hybrid messaging architecture** with two complementary transport layers:
+MeshChat uses a **hybrid messaging architecture** with two complementary transport layers:
 
 ### Bluetooth Mesh Network (Offline)
 

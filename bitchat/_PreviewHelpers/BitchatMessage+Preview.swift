@@ -1,5 +1,5 @@
 //
-// BitchatMessage+Preview.swift
+// MeshChatMessage+Preview.swift
 // bitchat
 //
 // This is free and unencumbered software released into the public domain.
@@ -8,9 +8,9 @@
 
 import Foundation
 
-extension BitchatMessage {
-    static var preview: BitchatMessage {
-        BitchatMessage(
+extension MeshChatMessage {
+    static var preview: MeshChatMessage {
+        MeshChatMessage(
             id: UUID().uuidString,
             sender: "John Doe",
             content: "Hello",

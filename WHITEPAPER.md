@@ -1,4 +1,4 @@
-# BitChat Protocol Whitepaper
+# MeshChat Protocol Whitepaper
 
 **Version 1.1**
 
@@ -8,7 +8,7 @@
 
 ## Abstract
 
-BitChat is a decentralized, peer-to-peer messaging application designed for secure, private, and censorship-resistant communication over ephemeral, ad-hoc networks. This whitepaper details the BitChat Protocol Stack, a layered architecture that combines a modern cryptographic foundation with a flexible application protocol. At its core, BitChat leverages the Noise Protocol Framework (specifically, the `XX` pattern) to establish mutually authenticated, end-to-end encrypted sessions between peers. This document provides a technical specification of the identity management, session lifecycle, message framing, and security considerations that underpin the BitChat network.
+MeshChat is a decentralized, peer-to-peer messaging application designed for secure, private, and censorship-resistant communication over ephemeral, ad-hoc networks. This whitepaper details the MeshChat Protocol Stack, a layered architecture that combines a modern cryptographic foundation with a flexible application protocol. At its core, MeshChat leverages the Noise Protocol Framework (specifically, the `XX` pattern) to establish mutually authenticated, end-to-end encrypted sessions between peers. This document provides a technical specification of the identity management, session lifecycle, message framing, and security considerations that underpin the MeshChat network.
 
 ---
 
@@ -31,7 +31,7 @@ This paper specifies the technical details of the protocol designed to meet thes
 
 ## 2. Protocol Stack
 
-The BitChat Protocol is a four-layer stack. This layered approach separates concerns, allowing for modularity and future extensibility.
+The MeshChat Protocol is a four-layer stack. This layered approach separates concerns, allowing for modularity and future extensibility.
 
 ```mermaid
 graph TD
@@ -39,7 +39,7 @@ graph TD
     B --> C[Encryption Layer];
     C --> D[Transport Layer];
 
-    subgraph "BitChat Application"
+    subgraph "MeshChat Application"
         A
     end
 
@@ -61,8 +61,8 @@ graph TD
     style D fill:#7eadff
 ```
 
-*   **Application Layer:** Defines the structure of user-facing messages (`BitchatMessage`), acknowledgments (`DeliveryAck`), and other application-level data.
-*   **Session Layer:** Manages the overall communication packet (`BitchatPacket`). This includes routing information (TTL), message typing, fragmentation, and serialization into a compact binary format.
+*   **Application Layer:** Defines the structure of user-facing messages (`MeshChatMessage`), acknowledgments (`DeliveryAck`), and other application-level data.
+*   **Session Layer:** Manages the overall communication packet (`MeshChatPacket`). This includes routing information (TTL), message typing, fragmentation, and serialization into a compact binary format.
 *   **Encryption Layer:** Establishes and manages secure channels using the Noise Protocol Framework. It is responsible for the cryptographic handshake, session management, and transport message encryption/decryption.
 *   **Transport Layer:** The underlying physical medium used for data transmission, such as Bluetooth Low Energy (BLE). This layer is abstracted away from the core protocol.
 
@@ -89,7 +89,7 @@ The `SecureIdentityStateManager` class is responsible for managing all cryptogra
 
 ## 4. The Social Trust Layer
 
-Beyond cryptographic identity, BitChat incorporates a social trust layer, allowing users to manage their relationships with peers. This functionality is handled by the `SecureIdentityStateManager`.
+Beyond cryptographic identity, MeshChat incorporates a social trust layer, allowing users to manage their relationships with peers. This functionality is handled by the `SecureIdentityStateManager`.
 
 ### 4.1. Peer Verification
 
@@ -161,11 +161,11 @@ The `NoiseSessionManager` class manages all active Noise sessions. It handles:
 
 ## 6. The BitChat Session and Application Protocol
 
-Once a Noise session is established, peers exchange `BitchatPacket` structures, which are encrypted as the payload of Noise transport messages.
+Once a Noise session is established, peers exchange `MeshChatPacket` structures, which are encrypted as the payload of Noise transport messages.
 
-### 6.1. Binary Packet Format (`BitchatPacket`)
+### 6.1. Binary Packet Format (`MeshChatPacket`)
 
-To minimize bandwidth, `BitchatPacket`s are serialized into a compact binary format. The structure is designed to be fixed-size where possible to resist traffic analysis.
+To minimize bandwidth, `MeshChatPacket`s are serialized into a compact binary format. The structure is designed to be fixed-size where possible to resist traffic analysis.
 
 | Field           | Size (bytes) | Description                                                                                             |
 |-----------------|--------------|---------------------------------------------------------------------------------------------------------|
@@ -237,13 +237,13 @@ packet
 +32: "Original Sender (variable) (optional)"
 +32: "Recipient Nickname (variable) (optional)"
 ```
-_A representation of the sizes of the fields in `BitchatMessage`_
+_A representation of the sizes of the fields in `MeshChatMessage`_
 
 ---
 
 ## 7. Message Routing and Propagation
 
-BitChat operates as a decentralized mesh network, meaning there are no central servers to route messages. Packets are propagated through the network from peer to peer. The protocol supports several modes of message delivery.
+MeshChat operates as a decentralized mesh network, meaning there are no central servers to route messages. Packets are propagated through the network from peer to peer. The protocol supports several modes of message delivery.
 
 ### 7.1. Direct Connection
 
@@ -265,7 +265,7 @@ This mechanism allows packets to "flood" through the network efficiently, maximi
 
 ### 7.3. Time-To-Live (TTL)
 
-Every `BitchatPacket` contains an 8-bit TTL field. This value is set by the originating peer and is decremented by one at each relay hop. If a peer receives a packet and decrements its TTL to 0, it will process the packet (if it is the recipient) but will not relay it further. This is a crucial mechanism to prevent packets from circulating endlessly in the mesh.
+Every `MeshChatPacket` contains an 8-bit TTL field. This value is set by the originating peer and is decremented by one at each relay hop. If a peer receives a packet and decrements its TTL to 0, it will process the packet (if it is the recipient) but will not relay it further. This is a crucial mechanism to prevent packets from circulating endlessly in the mesh.
 
 ### 7.4. Private vs. Broadcast Messages
 
@@ -284,7 +284,7 @@ To function in unreliable, lossy networks, the protocol includes features to tra
 
 ### 7.6. Fragmentation
 
-Transport layers like BLE have a Maximum Transmission Unit (MTU) that limits the size of a single packet. To handle messages larger than this limit, BitChat implements a fragmentation protocol.
+Transport layers like BLE have a Maximum Transmission Unit (MTU) that limits the size of a single packet. To handle messages larger than this limit, MeshChat implements a fragmentation protocol.
 
 *   **`fragmentStart`:** A packet with this type marks the beginning of a fragmented message. It contains metadata about the total size and number of fragments.
 *   **`fragmentContinue`:** These packets carry the intermediate chunks of the message data.
@@ -306,4 +306,4 @@ Receiving peers collect all fragments and reassemble them in the correct order b
 
 ## 9. Conclusion
 
-The BitChat Protocol provides a robust and secure foundation for decentralized, peer-to-peer communication. By layering a flexible application protocol on top of the well-regarded Noise Protocol Framework, it achieves strong confidentiality, authentication, and forward secrecy. The use of a compact binary format and thoughtful security considerations like rate limiting and traffic analysis resistance make it suitable for use in challenging network environments.
+The MeshChat Protocol provides a robust and secure foundation for decentralized, peer-to-peer communication. By layering a flexible application protocol on top of the well-regarded Noise Protocol Framework, it achieves strong confidentiality, authentication, and forward secrecy. The use of a compact binary format and thoughtful security considerations like rate limiting and traffic analysis resistance make it suitable for use in challenging network environments.

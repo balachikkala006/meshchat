@@ -120,7 +120,7 @@ extension ChatViewModel {
         let rawTs = Date(timeIntervalSince1970: TimeInterval(event.created_at))
         let timestamp = min(rawTs, Date())
         let mentions = parseMentions(from: content)
-        let msg = BitchatMessage(
+        let msg = MeshChatMessage(
             id: event.id,
             sender: senderName,
             content: content,
@@ -152,7 +152,7 @@ extension ChatViewModel {
         guard let (content, senderPubkey, rumorTs) = try? NostrProtocol.decryptPrivateMessage(giftWrap: giftWrap, recipientIdentity: id),
               content.hasPrefix("bitchat1:"),
               let packetData = Self.base64URLDecode(String(content.dropFirst("bitchat1:".count))),
-              let packet = BitchatPacket.from(packetData),
+              let packet = MeshChatPacket.from(packetData),
               packet.type == MessageType.noiseEncrypted.rawValue,
               let noisePayload = NoisePayload.decode(packet.payload)
         else {
@@ -332,7 +332,7 @@ extension ChatViewModel {
         // Clamp future timestamps
         let rawTs = Date(timeIntervalSince1970: TimeInterval(event.created_at))
         let mentions = parseMentions(from: content)
-        let msg = BitchatMessage(
+        let msg = MeshChatMessage(
             id: event.id,
             sender: senderName,
             content: content,
@@ -382,7 +382,7 @@ extension ChatViewModel {
         
         guard content.hasPrefix("bitchat1:"),
               let packetData = Self.base64URLDecode(String(content.dropFirst("bitchat1:".count))),
-              let packet = BitchatPacket.from(packetData),
+              let packet = MeshChatPacket.from(packetData),
               packet.type == MessageType.noiseEncrypted.rawValue,
               let payload = NoisePayload.decode(packet.payload)
         else {
@@ -547,7 +547,7 @@ extension ChatViewModel {
             let rawTs = Date(timeIntervalSince1970: TimeInterval(event.created_at))
             let ts = min(rawTs, Date())
             let mentions = self.parseMentions(from: content)
-            let msg = BitchatMessage(
+            let msg = MeshChatMessage(
                 id: event.id,
                 sender: senderName,
                 content: content,
@@ -620,7 +620,7 @@ extension ChatViewModel {
             // Check if it's a BitChat packet embedded in the content (bitchat1:...)
             if content.hasPrefix("bitchat1:") {
                 guard let packetData = Self.base64URLDecode(String(content.dropFirst("bitchat1:".count))),
-                      let packet = BitchatPacket.from(packetData) else {
+                      let packet = MeshChatPacket.from(packetData) else {
                     SecureLogger.error("Failed to decode embedded BitChat packet from Nostr DM", category: .session)
                     return
                 }
@@ -696,7 +696,7 @@ extension ChatViewModel {
         return nil
     }
 
-    func sendDeliveryAckViaNostrEmbedded(_ message: BitchatMessage, wasReadBefore: Bool, senderPubkey: String, key: Data?) {
+    func sendDeliveryAckViaNostrEmbedded(_ message: MeshChatMessage, wasReadBefore: Bool, senderPubkey: String, key: Data?) {
         // If we have a Noise key, try to route securely if possible, otherwise fallback to direct
         if let _ = key {
              // Ideally we would use MessageRouter here, but for simplicity in this direct callback:

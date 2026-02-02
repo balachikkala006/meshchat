@@ -1,5 +1,5 @@
 //
-// BitchatFilePacket.swift
+// MeshChatFilePacket.swift
 // bitchat
 //
 // This is free and unencumbered software released into the public domain.
@@ -11,7 +11,7 @@ import BitLogger
 
 /// TLV payload for Bluetooth mesh file transfers (voice notes, images, generic files).
 /// Mirrors the Android client specification to ensure cross-platform interoperability.
-struct BitchatFilePacket {
+struct MeshChatFilePacket {
     var fileName: String?
     var fileSize: UInt64?
     var mimeType: String?
@@ -65,7 +65,7 @@ struct BitchatFilePacket {
     }
 
     /// Decodes TLV payloads, tolerating legacy encodings (FILE_SIZE len=8, CONTENT len=2) when possible.
-    static func decode(_ data: Data) -> BitchatFilePacket? {
+    static func decode(_ data: Data) -> MeshChatFilePacket? {
         var cursor = data.startIndex
         let end = data.endIndex
 
@@ -145,7 +145,7 @@ struct BitchatFilePacket {
 
         guard !content.isEmpty else { return nil }
         guard FileTransferLimits.isValidPayload(content.count) else { return nil }
-        return BitchatFilePacket(
+        return MeshChatFilePacket(
             fileName: fileName,
             fileSize: fileSize ?? UInt64(content.count),
             mimeType: mimeType,
@@ -153,3 +153,8 @@ struct BitchatFilePacket {
         )
     }
 }
+
+// MARK: - Backwards Compatibility Typealias
+
+/// Typealias for backwards compatibility with existing test code
+typealias BitchatFilePacket = MeshChatFilePacket
